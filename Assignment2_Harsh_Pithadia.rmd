@@ -1,0 +1,155 @@
+---
+title: "Expolatory Data Analysis : Visualisation"
+author: "hp621@scarletmail.rutgers.edu"
+date: "2/1/2023"
+output: html_document
+---
+Questions
+
+1)Can we predict the popularity of a song with the help of Spotify audio features?
+2)Can we predict the populairty using youtube main feature such as 'views','like', 'comments?
+3)Check the max and min vaue of dependent varaibles
+
+
+```{r}
+#Importing the data set
+library(readr)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+View(Spotify_Youtube)
+```
+
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+summary(Spotify_Youtube_new)
+
+```
+```{r}
+#Data cleaning
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+
+```
+
+#Dependent Variables
+```{r}
+
+
+boxplot(Spotify_Youtube_new$Views, main = "Distribution of Views", xlab = "Number of Views", col = "skyblue")
+boxplot(Spotify_Youtube_new$Comments, main = "Distribution of Comments", xlab = "Number of Comments",col = "skyblue")
+boxplot(Spotify_Youtube_new$Likes, main = "Distribution of Likes", xlab = "Number of Likes",col = "skyblue")
+boxplot(Spotify_Youtube_new$Stream, main = "Distribution of Streams", xlab = "Number of Streams",col = "skyblue")
+```
+The boxplots again show that the outliers seem to be heavily influencing the distributions thus I will consider omitting them.
+
+
+
+```{r}
+Spotify_Youtube_new_dep <- Spotify_Youtube_new[, 13:16]
+
+Spotify_Youtube_new_clean <- Spotify_Youtube_new
+
+for (col in colnames(Spotify_Youtube_new_dep)) {
+  Q1 <- quantile(Spotify_Youtube_new_clean[[col]], 0.25, na.rm = TRUE)
+  Q3 <- quantile(Spotify_Youtube_new_clean[[col]], 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+
+  outliers <- Spotify_Youtube_new_clean[[col]] < (Q1 - 1.5 * IQR) | Spotify_Youtube_new_clean[[col]] > (Q3 + 1.5 * IQR)
+
+  Spotify_Youtube_new_clean <- Spotify_Youtube_new_clean[!outliers, ]
+}
+
+
+boxplot(Spotify_Youtube_new_clean$Views, main = "Distribution of Views", xlab = "Number of Views", col = "skyblue")
+boxplot(Spotify_Youtube_new_clean$Comments, main = "Distribution of Comments", xlab = "Number of Comments",col = "skyblue")
+boxplot(Spotify_Youtube_new_clean$Likes, main = "Distribution of Likes", xlab = "Number of Likes",col = "skyblue")
+boxplot(Spotify_Youtube_new_clean$Stream, main = "Distribution of Streams", xlab = "Number of Streams",col = "skyblue")
+
+```
+
+The distributions are easier to visualize now; however, they are still all right skewed which will have some implications with the assumptions of the analyses and models we plan to perform. 
+
+
+```{r}
+#Max and Min
+max_Views <- max(Spotify_Youtube_new$Views, na.rm = TRUE)
+min_Views <- min(Spotify_Youtube_new$Views, na.rm = TRUE)
+cat("Maximum Views:",max_Views , "\n")
+cat("Minimum Views:",min_Views , "\n")
+
+
+max_Comments <- max(Spotify_Youtube_new$Comments, na.rm = TRUE)
+min_Comments <- min(Spotify_Youtube_new$Comments, na.rm = TRUE)
+cat("Maximum Comments :",max_Comments , "\n")
+cat("Minimum Comments:",min_Comments , "\n")
+
+
+max_Likes <- max(Spotify_Youtube_new$Likes, na.rm = TRUE)
+min_Likes <- min(Spotify_Youtube_new$Likes, na.rm = TRUE)
+cat("Maximum Likes :",max_Likes , "\n")
+cat("Minimum Likes:",min_Likes , "\n")
+
+
+max_Streams <- max(Spotify_Youtube_new$Stream, na.rm = TRUE)
+min_Streams <- min(Spotify_Youtube_new$Stream, na.rm = TRUE)
+cat("Maximum Streams :",max_Streams , "\n")
+cat("Minimum Streams:",min_Streams , "\n")
+
+```
+
+
+
+
+
+##Independent Variables
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+
+Spotify_Youtube_new %>%
+  select(2:12) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(x = value))+
+  geom_histogram(bins = 30, color = "black", fill = "skyblue") +
+  facet_wrap(~name, scales = "free")
+
+```
+From the histograms we see that Acousticeness is right skewed, Liveness is right skewed, Loudness is left skewed, Speechiness is right skewed, and   Duration_ms  and Instrumentalness seem to be heavily influenced by extreme outliers in regards to their skewness. 
+
+Key is represeneted as a numerical variable within the dataset. It is a descrete numerical variable, but it is also a categorical variable. In music theory, the difference between the keys is not numerical but categorical thus it should be treated as a factor rather than a numeric variable within a regression model. 
+
+In regards to Duration_ms  and  Instrumentalness, we will not remove these extreme outliers. For duration_ms , it is plausible that there might be some very long songs. For Instrumentalness, there are songs that are completely instrumental. These can be valuable in terms of understanding the relationships between variables. Since linear regression models can be highly sensitive to outliers, we will consider using a log-transformation to minimize the impact of these extreme values.
+
+```{r}
+library(corrplot)
+corr_plot_data <- Spotify_Youtube_new %>% select(Danceability, Energy, Key, Loudness, Speechiness, Acousticness,Instrumentalness, Liveness, Valence, Tempo, Duration_ms)
+
+corr_matrix <- cor(corr_plot_data)
+
+corrplot(corr_matrix, 
+         method = "color",  
+         type = "upper", 
+         order = "hclust",
+         diag = TRUE,
+         addCoef.col = TRUE,
+         number.cex = 0.55,
+         tl.srt = 60)
+```
+
+From the correlation plot, we can see some trends at a glance.
+Acousticness  seems to be negatively correlated with several variables, especially Energy and Loudness. 
+
+Intrumentalness also seems to be negatively correlation with several variables except Acousticness. 
+
+Energy seems to have a positive correlation between Loudness, and Valence. The relationship with `Loudness` is predictable, however it's interesting to see that a song with higher energy is correlated with higher positivity.
