@@ -1,0 +1,294 @@
+---
+title: "Mean and Variance Anlaysis "
+author: "hp621@scarletmail.rutgers.edu"
+date: "2/24/2023"
+output: html_document
+---
+  
+```{r}
+#Importing the data set
+library(readr)
+library(dplyr)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+View(Spotify_Youtube)
+```
+
+
+```{r}
+
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+
+summary(Spotify_Youtube_new)
+```
+  
+```{r}
+#Data cleaning
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+
+
+```
+Univariate analysis
+1) Finding means of each column 
+2) Covariance matrix for all columns in the data
+3) Mahalanobis distances for each observation: To identify outlier or observations that are unusual relative to the overall distribution of the data. The distance is also used in clustering algorithms, like k-means clustering.
+```{r}
+#MEAN
+
+Spotify_Youtube_new_cm <- colMeans(Spotify_Youtube_new,na.rm = TRUE)
+
+Spotify_Youtube_new_cm
+```
+```{r}
+
+cor_matrix <- cor(Spotify_Youtube_new[, c("Danceability", "Energy", "Key", "Loudness", "Speechiness", "Acousticness", "Instrumentalness", "Liveness", "Valence", "Tempo", "Duration_ms", "Views", "Likes", "Comments", "Stream")])
+
+# Display the correlation matrix
+print(cor_matrix)
+
+# Consider removing highly correlated variables
+
+#Covariance
+Spotify_Youtube_new_S <- cov(Spotify_Youtube_new)
+Spotify_Youtube_new_S
+
+
+
+```
+```{r}
+#MAhanabolis distance
+library(MASS)
+
+Spotify_Youtube_new_d <- apply(
+  Spotify_Youtube_new, 
+  MARGIN = 1,
+  function(row) t(row - Spotify_Youtube_new_cm) %*% ginv(Spotify_Youtube_new_S) %*% (row - Spotify_Youtube_new_cm)
+)
+
+Spotify_Youtube_new_d
+
+```
+  
+```{r}
+#Danceability
+
+qqnorm(Spotify_Youtube_new$Album_type, main = "Album_type")
+qqline(Spotify_Youtube_new$Album_type)
+
+
+qqnorm(Spotify_Youtube_new$Danceability, main = "Danceability")
+qqline(Spotify_Youtube_new$Danceability)
+
+qqnorm(Spotify_Youtube_new$Energy, main = "Energy")
+qqline(Spotify_Youtube_new$Energy)
+
+qqnorm(Spotify_Youtube_new$Key, main = "Key")
+qqline(Spotify_Youtube_new$Key)
+
+qqnorm(Spotify_Youtube_new$Loudness, main = "Loudness")
+qqline(Spotify_Youtube_new$Loudness)
+
+qqnorm(Spotify_Youtube_new$Speechiness, main = "Speechiness")
+qqline(Spotify_Youtube_new$Speechiness)
+
+qqnorm(Spotify_Youtube_new$Acousticness, main = "Acousticness")
+qqline(Spotify_Youtube_new$Acousticness)
+
+qqnorm(Spotify_Youtube_new$Instrumentalness, main = "Instrumentalness")
+qqline(Spotify_Youtube_new$Instrumentalness)
+
+qqnorm(Spotify_Youtube_new$Liveness, main = "Liveness")
+qqline(Spotify_Youtube_new$Liveness)
+
+qqnorm(Spotify_Youtube_new$Valence, main = "Valence")
+qqline(Spotify_Youtube_new$Valence)
+
+qqnorm(Spotify_Youtube_new$Tempo, main = "Tempo")
+qqline(Spotify_Youtube_new$Tempo)
+
+qqnorm(Spotify_Youtube_new$Duration_ms, main = "Duration_ms")
+qqline(Spotify_Youtube_new$Duration_ms)
+
+qqnorm(Spotify_Youtube_new$Views, main = "Views")
+qqline(Spotify_Youtube_new$Views)
+
+qqnorm(Spotify_Youtube_new$Likes, main = "Likes")
+qqline(Spotify_Youtube_new$Likes)
+
+qqnorm(Spotify_Youtube_new$Stream, main = "Stream")
+qqline(Spotify_Youtube_new$Stream)
+
+qqnorm(Spotify_Youtube_new$Likes, main = "Likes")
+qqline(Spotify_Youtube_new$Likes)
+
+qqnorm(Spotify_Youtube_new$Comments, main = "Comments")
+qqline(Spotify_Youtube_new$Comments)
+```
+
+
+```{r}
+#f-test
+
+var.test(Spotify_Youtube$Album_type==0,Spotify_Youtube$Album_type==1)
+
+```
+
+
+```{r}
+with(data = Spotify_Youtube_new,t.test(Danceability[Album_type==0],Danceability[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Energy[Album_type==0],Energy[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Key[Album_type==0],Key[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Loudness[Album_type==0],Loudness[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Speechiness[Album_type==0],Speechiness[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Acousticness[Album_type==0],Acousticness[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Instrumentalness[Album_type==0],Instrumentalness[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Liveness[Album_type==0],Liveness[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Valence[Album_type==0],Valence[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Tempo[Album_type==0],Tempo[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Duration_ms[Album_type==0],Duration_ms[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Views[Album_type==0],Views[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Likes[Album_type==0],Likes[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Comments[Album_type==0],Comments[Album_type==1],var.equal=TRUE))
+
+with(data = Spotify_Youtube_new,t.test(Stream[Album_type==0],Stream[Album_type==1],var.equal=TRUE))
+```
+```{r}
+#Multivariate analysis: Hotelling’s T-squared test/ extension of the univariate t-test to multidimensional data.
+
+library(Hotelling)
+library(MASS)
+
+# Select the predictor variables
+predictors <- c("Danceability", "Energy", "Key", "Loudness", "Speechiness", "Acousticness", "Instrumentalness", "Liveness", "Valence", "Tempo", "Duration_ms", "Views", "Likes", "Comments", "Stream")
+
+# Create a matrix of predictors
+X <- as.matrix(Spotify_Youtube_new[, predictors])
+
+# Standardize or scale your variables
+scaled_data <- scale(X)
+
+# Perform the hotelling.test on the scaled data
+t2test <- hotelling.test(scaled_data ~ Album_type, data = Spotify_Youtube_new)
+
+
+Spotify_Youtube_scaled <- as.data.frame(scale(Spotify_Youtube_new[c("Album_type","Danceability", "Energy", "Key", "Loudness", "Speechiness", "Acousticness", "Instrumentalness", "Liveness", "Valence", "Tempo", "Duration_ms", "Views", "Likes", "Comments", "Stream")]))
+t2test <- hotelling.test(cbind(Danceability, Energy, Key, Loudness, Speechiness, Acousticness, Instrumentalness, Liveness, Valence, Tempo, Duration_ms, Views, Likes, Comments, Stream) ~ Album_type, data = Spotify_Youtube_scaled)
+
+cat("T2 statistic =",t2test$stat[[1]],"\n")
+
+print(t2test)
+```
+
+```{r}
+Spotify_Youtube_new_stand <- scale(Spotify_Youtube_new[,2:16])
+Spotify_Youtube_new_stand
+```
+```{r}
+attach(Spotify_Youtube_new)
+matalbum<- Spotify_Youtube_new_stand[Album_type == 0,]
+matalbum
+
+matsingle<- Spotify_Youtube_new_stand[Album_type == 1,]
+matsingle
+
+vecmedianalbum <- apply(matalbum, 2, median)
+vecmediansingle <- apply(matsingle, 2, median)
+
+vecmedianalbum
+vecmediansingle
+
+matabsdevalbum <- abs(matalbum - matrix(rep(vecmedianalbum,nrow(matalbum)),nrow=nrow(matalbum), byrow=TRUE))
+
+matabsdevsingle <- abs(matsingle - matrix(rep(vecmediansingle,nrow(matsingle)),nrow=nrow(matsingle), byrow=TRUE))
+
+
+matabsdev.all <- rbind(matabsdevalbum,matabsdevsingle)
+matabsdev.all <- data.frame(Album_type, matabsdev.all)
+
+t.test(matabsdev.all$Danceability[Album_type == 1],matabsdev.all$Danceability[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Energy[Album_type == 1],matabsdev.all$Energy[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Key[Album_type == 1],matabsdev.all$Key[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Loudness[Album_type == 1],matabsdev.all$Loudness[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Speechiness[Album_type == 1],matabsdev.all$Speechiness[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Acousticness[Album_type == 1],matabsdev.all$Acousticness[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Instrumentalness[Album_type == 1],matabsdev.all$Instrumentalness[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Liveness[Album_type == 1],matabsdev.all$Liveness[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Valence[Album_type == 1],matabsdev.all$Valence[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Tempo[Album_type == 1],matabsdev.all$Tempo[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Views[Album_type == 1],matabsdev.all$Views[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Likes[Album_type == 1],matabsdev.all$Likes[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Comments[Album_type == 1],matabsdev.all$Comments[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Stream[Album_type == 1],matabsdev.all$Stream[Album_type == 0], alternative="less",var.equal = TRUE)
+
+t.test(matabsdev.all$Duration_ms[Album_type == 1],matabsdev.all$Duration_ms[Album_type == 0], alternative="less",var.equal = TRUE)
+
+Spotify_Youtube_new_stand.all <- data.frame(Album_type, Spotify_Youtube_new_stand)
+colnames(Spotify_Youtube_new_stand.all) <- colnames(Spotify_Youtube_new[1:16])
+t2testsstand <- hotelling.test(Danceability + Energy + Key + Loudness + Speechiness + Acousticness + Instrumentalness + Liveness + Valence + Tempo + Duration_ms + Views + Likes + Comments + Stream ~ Album_type,data=Spotify_Youtube_new_stand.all)
+cat("T2 statistic =",t2testsstand$stat[[1]],"\n")
+print(t2testsstand)
+
+
+
+```
+```{r}
+#Anova
+summary(aov(Danceability~Album_type))
+summary(aov(Energy~Album_type))
+summary(aov(Key~Album_type))
+summary(aov(Loudness~Album_type))
+summary(aov(Speechiness~Album_type))
+summary(aov(Acousticness~Album_type))
+summary(aov(Instrumentalness~Album_type))
+summary(aov(Liveness~Album_type))
+summary(aov(Valence~Album_type))
+summary(aov(Tempo~Album_type))
+summary(aov(Duration_ms~Album_type))
+summary(aov(Likes~Album_type))
+summary(aov(Comments~Album_type))
+summary(aov(Views~Album_type))
+summary(aov(Stream~Album_type))
+
+
+
+```
+
+
+  
