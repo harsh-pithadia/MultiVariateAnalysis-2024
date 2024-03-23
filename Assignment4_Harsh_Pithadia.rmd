@@ -1,0 +1,215 @@
+---
+title: "PCA:Analysis "
+author: "hp621@scarletmail.rutgers.edu"
+date: "2/24/2023"
+output: html_document
+---
+  
+```{r}
+library(readr)
+library(dplyr)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+
+```
+
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+
+summary(Spotify_Youtube_new)
+```
+  
+```{r}
+#Data cleaning
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+
+```
+  
+  
+```{r}
+cor(Spotify_Youtube_new[-1])
+
+```
+```{r}
+Spotify_Youtube_PCA <- prcomp(Spotify_Youtube_new[-1],scale=TRUE)
+Spotify_Youtube_PCA
+summary(Spotify_Youtube_PCA)
+```
+```{r}
+str(Spotify_Youtube_PCA)
+(eigen_Spotify_Youtube <- Spotify_Youtube_PCA$sdev^2)
+eigen_Spotify_Youtube
+
+sumlambdas <- sum(eigen_Spotify_Youtube)
+sumlambdas
+
+propvar <- eigen_Spotify_Youtube/sumlambdas
+propvar
+
+cumvar_Spotify_Youtube <- cumsum(propvar)
+cumvar_Spotify_Youtube
+
+matlambdas <- rbind(eigen_Spotify_Youtube,propvar,cumvar_Spotify_Youtube)
+rownames(matlambdas) <- c("Eigenvalues","Prop. variance","Cum. prop. variance")
+round(matlambdas,4)
+summary(Spotify_Youtube_PCA)
+Spotify_Youtube_PCA$rotation
+print(Spotify_Youtube_PCA)
+```
+  
+```{r}
+## Sample scores stored 
+
+Spotify_Youtube_PCA$x
+# Identifying the scores by their Album type
+attach(Spotify_Youtube_new)
+Spotify_Youtube_typ_PCA <- cbind(data.frame(Album_type),Spotify_Youtube_PCA$x)
+
+Spotify_Youtube_typ_PCA
+
+
+```
+  
+```{r}
+# Means of scores for all the PC's classified by Album type
+tabmeansPC <- aggregate(Spotify_Youtube_typ_PCA[,2:16],by=list(Album_type=Spotify_Youtube_new$Album_type),mean)
+tabmeansPC
+tabmeansPC <- tabmeansPC[rev(order(tabmeansPC$Album_type)),]
+tabmeansPC
+tabfmeans <- t(tabmeansPC[,-1])
+tabfmeans
+colnames(tabfmeans) <- t(as.vector(tabmeansPC[1]$Album_type))
+tabfmeans
+```
+```{r}
+# Standard deviations of scores for all the PC's classified by Album type
+tabsdsPC <- aggregate(Spotify_Youtube_typ_PCA[,2:16],by=list(Album_type=Spotify_Youtube_new$Album_type),sd)
+tabfsds <- t(tabsdsPC[,-1])
+colnames(tabfsds) <- t(as.vector(tabsdsPC[1]$Album_type))
+tabfsds
+t.test(PC1~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC2~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC3~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC4~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC5~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC6~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC7~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC8~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC9~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC10~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC11~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC12~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC13~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC14~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+t.test(PC15~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+
+
+
+```
+##the t-test results, We should prioritize PC1 through PC5, PC7, PC8, PC9, PC10, PC11, PC12, PC13, and PC15 for further analysis, as they demonstrate statistically significant differences between the groups. PC6 and PC14, which do not show significant differences.
+
+```{r}
+## F ratio tests
+var.test(PC1~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC2~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC3~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC4~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC5~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC6~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC7~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC8~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC9~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC10~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC11~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC12~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC13~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC14~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+var.test(PC15~Spotify_Youtube_new$Album_type,data=Spotify_Youtube_typ_PCA)
+
+
+
+
+```
+##Most principal components (PC1 through PC10, PC12 through PC15) have significantly different variances between the two groups, as indicated by very small p-values (p < 0.05).
+##PC11 has a p-value of 0.1378, which is greater than 0.05, suggesting that the difference in variances for PC11 between the two groups is not statistically significant.
+
+
+```{r}
+# Plotting the scores for the first,second and third components
+
+library(plot3D)
+
+scatter3D(Spotify_Youtube_typ_PCA$PC1,Spotify_Youtube_typ_PCA$PC2,Spotify_Youtube_typ_PCA$PC3,xlab = "PC1", ylab = "PC2", zlab = "PC3",type="h")
+
+
+plot(Spotify_Youtube_typ_PCA$PC1, Spotify_Youtube_typ_PCA$PC2,pch=ifelse(Spotify_Youtube_typ_PCA$Album_type == 1,0,1),xlab="PC1", ylab="PC2", main="Album vs Single")
+
+plot(Spotify_Youtube_typ_PCA$PC1, Spotify_Youtube_typ_PCA$PC3,pch=ifelse(Spotify_Youtube_typ_PCA$Album_type == 1,0,1),xlab="PC1", ylab="PC3", main="Album vs Single")
+
+plot(Spotify_Youtube_typ_PCA$PC1, Spotify_Youtube_typ_PCA$PC4,pch=ifelse(Spotify_Youtube_typ_PCA$Album_type == 1,0,1),xlab="PC1", ylab="PC4", main="Album vs Single")
+
+plot(Spotify_Youtube_typ_PCA$PC3, Spotify_Youtube_typ_PCA$PC2,pch=ifelse(Spotify_Youtube_typ_PCA$Album_type == 1,0,1),xlab="PC3", ylab="PC2", main="Album vs Single")
+
+plot(Spotify_Youtube_typ_PCA$PC3, Spotify_Youtube_typ_PCA$PC4,pch=ifelse(Spotify_Youtube_typ_PCA$Album_type == 1,0,1),xlab="PC3", ylab="PC4", main="Album vs Single")
+
+
+plot(eigen_Spotify_Youtube, xlab = "Component number", ylab = "Component variance", type = "l", main = "Scree diagram")
+plot(log(eigen_Spotify_Youtube), xlab = "Component number",ylab = "log(Component variance)", type="l",main = "Log(eigenvalue) diagram")
+summary(Spotify_Youtube_PCA)
+
+diag(cov(Spotify_Youtube_PCA$x))
+
+#PC1>PC2>PC3>PC4>PC5>PC6>PC6>PC7>PC8>PC9>PC10>PC15>PC11>PC12>PC13>PC14
+
+xlim <- range(Spotify_Youtube_PCA$x[,1])
+Spotify_Youtube_PCA$x[,1]
+Spotify_Youtube_PCA$x
+plot(Spotify_Youtube_PCA$x,xlim=xlim,ylim=xlim)
+Spotify_Youtube_PCA$rotation[,1]
+Spotify_Youtube_PCA$rotation
+Spotify_Youtube_PCA$x
+plot(Spotify_Youtube_PCA)
+
+#Considering these factors, we can assess the importance of each PC based on the provided results:
+#PC1: It has a high proportion of variance (0.2197) and contributes significantly to the cumulative proportion of variance (0.2197).
+#PC2: Similar to PC1, it has a high proportion of variance (0.1728) and adds substantially to the cumulative proportion of variance (0.3926).
+#PC3 and PC4: While their proportions of variance are lower compared to PC1 and PC2, they still contribute notably to the cumulative proportion of variance (0.4783 for PC3 and 0.5489 for PC4).
+#PCs beyond PC4: These PCs contribute less to the cumulative proportion of variance individually, but together, they still capture a significant portion of the variability in the dataset.
+#PCs 1 through 4 appear to be the most important based on their higher proportions of variance and cumulative proportions of variance. These PCs collectively explain a substantial portion of the variability in the dataset and can be considered significant for further analysis or dimensionality reduction.
+
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+#get the original value of the data based on PCA
+
+new_matrix <- as.matrix(Spotify_Youtube_new[,-1])
+new_matrix
+drop(scale(new_matrix,Spotify_Youtube_PCA$center,Spotify_Youtube_PCA$scale)%*%Spotify_Youtube_PCA$rotation[,1])
+predict(Spotify_Youtube_PCA)[,1]
+```
+
+```{r}
+#so we did PCA analysis and keep first 4 components
+#PC1,PC2,PC3 and PC4
+```
+
