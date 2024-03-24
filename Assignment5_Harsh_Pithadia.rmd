@@ -1,0 +1,248 @@
+---
+title: "Cluster Analysis "
+author: "hp621@scarletmail.rutgers.edu"
+date: "3/8/2023"
+output: html_document
+---
+  
+```{r}
+library(cluster)
+library(magrittr)
+library(NbClust)
+library(factoextra)
+library(dplyr)
+library(readr)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+
+```
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+
+summary(Spotify_Youtube_new)
+```
+```{r}
+#Data cleaning
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+```
+
+Hierarchical Clustering
+```{r}
+#Since the dataset is of 1881 observations, I am creating a sample data of only first 50 rows of the entire data. 
+sampled_data <- Spotify_Youtube_new[sample(nrow(Spotify_Youtube_new), 75), ]
+matstd.data <- scale(sampled_data[,-1])
+
+# Creating a (Euclidean) distance matrix of the standardized data                     
+dist.data <- dist(matstd.data, method="euclidean")
+colnames(dist.data) <- rownames(dist.data)
+
+# Invoking hclust command (cluster analysis by single linkage method)      
+clusdata.nn <- hclust(dist.data, method = "single")
+
+#dendogram
+#plot(as.dendrogram(clusdata.nn),ylab="Distance between independent variables",
+#     main="Dendrogram. People employed in nine industry groups \n  from European countries")
+
+options(repr.plot.width=30, repr.plot.height=10)  # Adjust the plot size as needed
+plot(as.dendrogram(clusdata.nn), ylab="Distance between independent variables",
+     main="Dendrogram. p")
+
+
+
+```
+  
+```{r}
+(agn.data <- agnes(sampled_data, metric="euclidean", stand=TRUE, method = "single"))
+```
+  
+```{r}
+plot(as.dendrogram(agn.data), xlab= "Distance between ",xlim=c(8,0),
+     horiz = TRUE,main="Dendrogram ")
+```
+  Non-hierarchical clustering/ K-means clustering
+```{r}
+# K-means, k=2, 3, 4, 5, 6
+# Centers (k's) are numbers thus, 10 random sets are chosen
+
+(kmeans2.data <- kmeans(matstd.data,2,nstart = 10))
+```
+  
+```{r}
+# Computing the percentage of variation accounted for. Two clusters
+perc.var.2 <- round(100*(1 - kmeans2.data$betweenss/kmeans2.data$totss),1)
+names(perc.var.2) <- "Perc. 2 clus"
+perc.var.2
+```
+  
+```{r}
+# Computing the percentage of variation accounted for. Three clusters
+(kmeans3.data <- kmeans(matstd.data,3,nstart = 10))
+```
+  
+```{r}
+perc.var.3 <- round(100*(1 - kmeans3.data$betweenss/kmeans3.data$totss),1)
+names(perc.var.3) <- "Perc. 3 clus"
+perc.var.3
+```
+```{r}
+# Computing the percentage of variation accounted for. Four clusters
+(kmeans4.data <- kmeans(matstd.data,4,nstart = 10))
+```
+```{r}
+perc.var.4 <- round(100*(1 - kmeans4.data$betweenss/kmeans4.data$totss),1)
+names(perc.var.4) <- "Perc. 4 clus"
+perc.var.4
+```
+```{r}
+# Computing the percentage of variation accounted for. Five clusters
+(kmeans5.data <- kmeans(matstd.data,5,nstart = 10))
+```
+  
+```{r}
+perc.var.5 <- round(100*(1 - kmeans5.data$betweenss/kmeans5.data$totss),1)
+names(perc.var.5) <- "Perc. 5 clus"
+perc.var.5
+```
+```{r}
+# Computing the percentage of variation accounted for. Six clusters
+(kmeans6.data <- kmeans(matstd.data,6,nstart = 10))
+```
+  
+```{r}
+perc.var.6 <- round(100*(1 - kmeans6.data$betweenss/kmeans6.data$totss),1)
+names(perc.var.6) <- "Perc. 6 clus"
+perc.var.6
+```
+  
+```{r}
+# Computing the percentage of variation accounted for. Seven clusters
+(kmeans7.data <- kmeans(matstd.data,7,nstart = 10))
+```
+```{r}
+perc.var.7 <- round(100*(1 - kmeans7.data$betweenss/kmeans7.data$totss),1)
+names(perc.var.7) <- "Perc. 7 clus"
+perc.var.7
+```
+```{r}
+# Computing the percentage of variation accounted for. Eight clusters
+(kmeans8.data <- kmeans(matstd.data,8,nstart = 10))
+```
+```{r}
+perc.var.8 <- round(100*(1 - kmeans8.data$betweenss/kmeans8.data$totss),1)
+names(perc.var.8) <- "Perc. 8 clus"
+perc.var.8
+```
+```{r}
+# Computing the percentage of variation accounted for. Nine clusters
+(kmeans9.data <- kmeans(matstd.data,9,nstart = 10))
+```
+```{r}
+perc.var.9 <- round(100*(1 - kmeans9.data$betweenss/kmeans9.data$totss),1)
+names(perc.var.9) <- "Perc. 9 clus"
+perc.var.9
+```
+```{r}
+# Computing the percentage of variation accounted for. Ten clusters
+(kmeans10.data <- kmeans(matstd.data,10,nstart = 10))
+```
+```{r}
+perc.var.10 <- round(100*(1 - kmeans10.data$betweenss/kmeans10.data$totss),1)
+names(perc.var.10) <- "Perc. 6 clus"
+perc.var.10
+```
+  
+```{r}
+Variance_List <- c(perc.var.2,perc.var.3,perc.var.4,perc.var.5,perc.var.6,perc.var.7,perc.var.8,perc.var.9,perc.var.10)
+
+Variance_List
+```
+  
+```{r}
+plot(Variance_List)
+```
+  Insight: With k-means clustering, I think having 10 clusters is the optimal option. Reason- from the plot we can see that the curve of the line/slope starts to decrease significantly from  compared to all points before 10. Here we can also see, as we go on increasing the number of clusters the variance decreases. Cluster 10 computes ~65% of variance  (between_SS / total_SS =  65.2 %)
+```{r}
+optimal_num_clusters <- 10
+
+#K-means clustering with the optimal number of clusters
+kmeans_model <- kmeans(matstd.data, optimal_num_clusters, nstart = 10)
+
+cluster_membership <- kmeans_model$cluster
+
+# Print the cluster membership for each data point
+print(cluster_membership)
+```
+```{r}
+# Scatter plot of the data with clusters colored by membership
+plot(matstd.data[, 1], matstd.data[, 2], 
+     col = kmeans_model$cluster, pch = 16, 
+     xlab = "Variable 1", ylab = "Variable 2",
+     main = "K-means Clustering")
+
+# Adding cluster centers to the plot
+points(kmeans_model$centers[, 1], kmeans_model$centers[, 2], col = 1:optimal_num_clusters, pch = 3, cex = 2)
+
+# Adding legend
+legend("topleft", legend = paste("C", 1:optimal_num_clusters), col = 1:optimal_num_clusters, pch = 16, cex = 0.8, title = "Clusters")
+```
+```{r}
+gap_stat <- clusGap(matstd.data, FUN = kmeans, nstart = 10, K.max = 10, B = 50)
+
+fviz_gap_stat(gap_stat)
+```
+
+My Optimal number of cluster according to k-means
+```{r}
+set.seed(123)
+## Perform K-means clustering
+km.res7 <- kmeans(matstd.data, 7, nstart = 25)  
+# Visualize clusters
+fviz_cluster(km.res7, data = matstd.data,  
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal())
+```
+  Optimal number of clusters according to computer using k-means
+```{r}
+km.res8 <- kmeans(matstd.data, 8, nstart = 25)  
+# Visualize clusters
+fviz_cluster(km.res8, data = matstd.data,  
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal())
+```
+  
+```{r}
+km.res4 <- kmeans(matstd.data, 4, nstart = 25)  
+# Visualize clusters
+fviz_cluster(km.res4, data = matstd.data,  
+             ellipse.type = "convex",
+             palette = "jco",
+             ggtheme = theme_minimal())
+```
+  
+```{r}
+# Perform Hierarchical Clustering
+res.hc <- matstd.data %>% scale() %>% dist(method = "euclidean") %>%
+  hclust(method = "ward.D2")  # Change matstd.data to your dataset
+
+# Visualize the Dendrogram
+fviz_dend(res.hc, k = 10,  # Cut in ten groups
+          cex = 0.5,  # label size
+          k_colors = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07","grey","red","pink","violet","green","purple"),
+          color_labels_by_k = TRUE,  # color labels by groups
+          rect = TRUE)
+```
+  
+  
