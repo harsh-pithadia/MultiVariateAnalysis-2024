@@ -1,0 +1,73 @@
+---
+title: "Factor Analysis "
+author: "hp621@scarletmail.rutgers.edu"
+date: "3/24/2023"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(psych)
+library(readr)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+```
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+```
+
+```{r}
+#Data cleaning
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+```
+```{r}
+sampled_data <- Spotify_Youtube_new[sample(nrow(Spotify_Youtube_new), 5000), ]
+matstd.data <- scale(sampled_data[,-1])
+```
+
+Q. Decide how many Factors are ideal for your dataset?
+```{r}
+fa.parallel(sampled_data[-1])
+```
+Parallel analysis suggests that the number of factors =  5  and the number of components =  4 
+
+```{r}
+fit.pc <- principal(sampled_data[-1], nfactors=5, rotate="varimax")
+fit.pc
+```
+
+```{r}
+round(fit.pc$values, 5)
+fit.pc$loadings
+```
+
+The output from the factor analysis reveals that the extracted factors, represented as RC1 to RC5, collectively account for a substantial portion of the variance in the dataset. The first two factors, RC1 and RC2, explain the most variance, with proportions of 20.1% and 18.4%, respectively. By considering all five factors, approximately 61.6% of the total variance in the dataset is explained, indicating a comprehensive understanding of underlying patterns.
+
+```{r}
+fa.plot(fit.pc) # See Correlations within Factors
+```
+Q. Show the columns that go into each factor
+
+```{r}
+fa.diagram(fit.pc)
+```
+
+Q. Perform some visualizations using the factors 
+```{r}
+vss(sampled_data[-1])
+```
+```{r}
+biplot(fit.pc)
+```
+
