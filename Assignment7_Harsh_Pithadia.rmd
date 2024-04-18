@@ -1,0 +1,164 @@
+---
+title: "Multiple_Regression"
+author: "hp621@Scarletmail.rutgers.edu"
+date: "2024-11-04"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(GGally)
+library(MASS)
+library(car)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+```
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+```
+
+
+```{r}
+#Data cleaning
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+```
+Q1.Model Development
+
+```{r}
+
+sampled_data <- Spotify_Youtube_new[sample(nrow(Spotify_Youtube_new), 100), ]
+
+str(sampled_data)
+scale(sampled_data)
+
+
+fit <- lm(Stream~Views+Likes+Comments, data = sampled_data)
+
+summary(fit)
+```
+Coefficients:
+Intercept: ~50,740,000.
+Views: ~0.1469 (not significant).
+Likes: ~145.9 (significant).
+Comments: ~-835.6 (marginally significant).
+Interpretation of Coefficients:
+Likes show a significant positive relationship with Streams.
+Comments show a marginally significant negative relationship with Streams.
+Views do not show a significant relationship with Streams.
+Significance:
+Likes: significant (p < 0.001).
+Comments: marginally significant (p = 0.069).
+Views: not significant (p = 0.442).
+Model Fit:
+Multiple R-squared: ~0.6065.
+Adjusted R-squared: ~0.5942.
+F-statistic: significant (p < 2.2e-16).
+Residuals:
+Mean close to zero.
+Residual standard error: ~180,700,000.
+
+Q2: Model Acceptance From the summary among the predictors included in the model
+
+```{r}
+coefficients(fit)
+```
+Intercept (5.07e+07): This is like the starting point. Imagine you have no Views, Likes, or Comments at all. This number suggests that even in that scenario, there's a base level of viewership, estimated to be around 50,740,000.
+Views (0.146): For every additional View, the Stream value increases by approximately 0.146. However, this increase isn't statistically significant, so it might not be a reliable indicator in this model.
+Likes (145.9): Each Like adds roughly 145.9 to the Stream value. This coefficient is significant, indicating that Likes have a noticeable positive effect on Stream values. More Likes usually mean more people are interested in the content.
+Comments (-835.6): Surprisingly, each Comment seems to decrease the Stream value by around 835.6. However, this result is only marginally significant, meaning it's not as reliable as the Likes coefficient. It suggests that more Comments might not necessarily mean more viewership in this context.
+ Likes have a strong positive influence on Stream values, but Comments might not have as clear of an impact. Views, in this model, don't seem to reliably predict changes in Stream values.
+
+
+
+Q3.Residual Analysis
+```{r}
+ggpairs(data=sampled_data, title="Music Data")
+confint(fit,level=0.95)
+fitted(fit)
+residuals(fit)
+```
+
+```{r}
+residuals(fit)
+#Anova Table
+anova(fit)
+vcov(fit)
+cov2cor(vcov(fit))
+temp <- influence.measures(fit)
+temp
+plot(fit)
+```
+```{r}
+
+# Global test of model assumptions
+library(gvlma)
+
+gvmodel <- gvlma(fit)
+summary(gvmodel)
+fit
+summary(fit)
+fit1 <- fit
+fit2 <- lm(Stream ~ Likes + Comments , data = sampled_data)
+```
+
+
+```{r}
+# compare models
+anova(fit1, fit2)
+
+step <- stepAIC(fit, direction="both")
+step$anova # display results
+```
+```{r}
+library(leaps)
+leaps<-regsubsets(Stream~Likes+Views+Comments,data=sampled_data,nbest=10)
+leaps
+# view results
+plot(leaps)
+plot(leaps,scale="r2")
+plot(leaps,scale="bic")
+summary(leaps)
+```
+```{r}
+library(relaimpo)
+calc.relimp(fit,type=c("lmg","last","first","pratt"),
+            rela=TRUE)
+```
+Q4.Prediction
+```{r}
+summary(fit)
+predict.lm(fit, data.frame(Likes=100 ,Comments=20,Views=2000) )
+
+```
+The model's overall fit is decent, with a Multiple R-squared of 0.6741, indicating that approximately 67.41% of the variation in Stream values can be explained by the predictors. However, it's essential to interpret the coefficients cautiously, considering their statistical significance and practical implications.
+
+
+5.Model Accuracy
+
+```{r}
+rsquared <- summary(fit)$r.squared
+cat("R-squared:", rsquared, "\n")
+
+
+adjusted_rsquared <- summary(fit)$adj.r.squared
+cat("Adjusted R-squared:", adjusted_rsquared, "\n")
+```
+ these values provide insights into how well the model fits the data. A higher R-squared indicates a better fit, but it's essential to consider other factors such as the significance of coefficients and model assumptions.
+ 
+```{r}
+crPlots(fit)
+spreadLevelPlot(fit)
+
+```
+ #Suggested power transformation:  -0.007645491 
