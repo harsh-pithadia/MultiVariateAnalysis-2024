@@ -1,0 +1,157 @@
+---
+title: "Logistic_Regression"
+author: "hp621@Scarletmail.rutgers.edu"
+date: "2024-17-04"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(cowplot)
+library(readr)
+library(caret)
+library(e1071)
+library(pROC)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+```
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 26, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+```
+```{r}
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+```
+```{r}
+sampled_data <- Spotify_Youtube_new[sample(nrow(Spotify_Youtube_new), 100), ]
+
+str(sampled_data)
+```
+1) Model Development
+
+
+```{r}
+
+#Explolatory Analysis
+sampled_data[sampled_data$Album_type == 0,]$Album_type <- "Album"
+sampled_data[sampled_data$Album_type == 1,]$Album_type <- "Single"
+
+sampled_data$Album_type <- as.factor(sampled_data$Album_type)
+sampled_data$Licensed <- as.factor(sampled_data$Licensed)
+
+
+```
+
+```{r}
+xtabs(~Album_type +Views, data=sampled_data)
+xtabs(~Album_type +Likes,data = sampled_data)
+xtabs(~Album_type +Comments, data=sampled_data)
+xtabs(~Album_type +Stream,data = sampled_data)
+xtabs(~Album_type +Licensed,data = sampled_data)
+```
+
+```{r}
+logistic_simple <- glm(Album_type~ Views , data=sampled_data, family = 'binomial')
+summary(logistic_simple)
+```
+
+
+
+
+
+```{r}
+sampled_data <- data.frame(sampled_data)
+```
+
+
+
+2) Model Acceptance 
+
+```{r}
+predicted.data <- data.frame(probability.of.Album_type = logistic_simple$fitted.values,
+                              Views = sampled_data$Views)
+print(predicted.data)
+
+
+
+```
+```{r}
+# We can plot the data
+ggplot(data=predicted.data ,aes(x=Views, y=probability.of.Album_type))+ geom_point(aes(color=Views), size=5) + xlab("Views") + ylab("Predicted probability of getting a loan")
+
+xtabs(~ probability.of.Album_type + Views , data=predicted.data)
+```
+3) Residual Analysis and Prediction
+
+```{r}
+logistic <- glm(Album_type ~ ., data=sampled_data, family="binomial")
+summary(logistic)
+```
+```{r}
+predicted.data <- data.frame(probability.of.ls=logistic$fitted.values,ls=sampled_data$Album_type)
+predicted.data <- predicted.data[order(predicted.data$probability.of.ls, decreasing=FALSE),]
+predicted.data$rank <- 1:nrow(predicted.data)
+## Lastly, we can plot the predicted probabilities for each sample having
+## heart disease and color by whether or not they actually had heart disease
+ggplot(data=predicted.data, aes(x=rank, y=probability.of.ls)) +
+geom_point(aes(color=ls), alpha=1, shape=4, stroke=2) +
+xlab("Index") +
+ylab("Predicted probability of getting a views")
+```
+5) Model Accuracy 
+```{r}
+# Confusion matrix
+conf_mat <- table(Actual = sampled_data$Album_type, Predicted = ifelse(logistic$fitted.values > 0.5, "Single", "Album"))
+print(conf_mat)
+```
+```{r}
+# Calculate accuracy
+accuracy <- sum(diag(conf_mat)) / sum(conf_mat)
+print(paste("Accuracy:", accuracy))
+
+```
+
+```{r}
+# Calculate precision
+precision <- conf_mat["Single", "Single"] / sum(conf_mat[, "Single"])
+print(paste("Precision:", precision))
+
+```
+
+```{r}
+# Calculate precision
+precision <- conf_mat["Album", "Album"] / sum(conf_mat[, "Album"])
+print(paste("Precision:", precision))
+
+```
+
+```{r}
+# Calculate recall
+recall <- conf_mat["Single", "Single"] / sum(conf_mat["Single", ])
+print(paste("Recall:", recall))
+
+```
+
+```{r}
+# Calculate recall
+recall <- conf_mat["Album", "Album"] / sum(conf_mat["Album", ])
+print(paste("Recall:", recall))
+
+```
+```{r}
+roc_obj <- roc(sampled_data$Album_type, logistic$fitted.values)
+plot(roc_obj, xlab="False Positive Percentage", ylab="True Postive Percentage", legacy.axes=TRUE, col="#377eb8", lwd=4, percent=TRUE, print.auc=TRUE)
+```
+
+
+
