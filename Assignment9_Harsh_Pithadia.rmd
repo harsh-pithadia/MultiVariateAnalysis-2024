@@ -1,0 +1,132 @@
+---
+title: "Discriminant_Analysis"
+author: "hp621@Scarletmail.rutgers.edu"
+date: "2024-17-04"
+output: html_document
+---
+
+```{r}
+library(MASS)
+library(ggplot2)
+library(memisc)
+library(ROCR)
+library(dplyr)
+library(klaR)
+library(pROC)
+library(readr)
+Spotify_Youtube <- read_csv("C:/Users/HARSH/Desktop/RU/SEM 2/MVA/Spotify_Youtube.csv")
+```
+```{r}
+Spotify_Youtube <- as.data.frame(Spotify_Youtube)
+
+dependent_columns <- c(6,8:18, 22:24, 26, 28)
+
+Spotify_Youtube_new<- Spotify_Youtube[, dependent_columns]
+
+Spotify_Youtube_new
+
+str(Spotify_Youtube_new)
+```
+
+```{r}
+Spotify_Youtube_new[!complete.cases(Spotify_Youtube_new), ]
+
+sapply(Spotify_Youtube_new, function(x) mean(is.na(x)) * 100)
+
+Spotify_Youtube_new <- na.omit(Spotify_Youtube_new)
+```
+
+```{r}
+sampled_data <- Spotify_Youtube_new[sample(nrow(Spotify_Youtube_new), 100), ]
+
+str(sampled_data)
+```
+
+
+```{r}
+sampled_data$Album_type<-as.factor(sampled_data$Album_type)
+
+str(sampled_data)
+```
+LDA Model with Train and Test Split
+Splitting the dataset into Training and Test
+
+
+```{r}
+set.seed(42)
+
+smp_size_raw <- floor(0.75 * nrow(sampled_data))
+
+train_ind_raw <- sample(nrow(sampled_data), size = smp_size_raw)
+
+#Creating Train and Test Data
+train_raw.df <- as.data.frame(sampled_data[train_ind_raw, ])
+test_raw.df <- as.data.frame(sampled_data[-train_ind_raw, ])
+```
+
+LDA Model
+
+```{r}
+sm_lda <- lda(formula = train_raw.df$Album_type ~ ., data = train_raw.df)
+sm_lda
+```
+
+```{r}
+summary(sm_lda)
+```
+The above summary helps us examine the output of our LDA model.
+
+Residuals
+```{r}
+plot(sm_lda)
+```
+
+
+```{r}
+plot(sm_lda, col = as.integer(train_raw.df$Album_type))
+```
+
+
+```{r}
+partimat(Album_type ~ Likes+Views+Comments+ Stream , data = train_raw.df, method = "lda")
+```
+
+```{r}
+sm.lda.predict <- predict(sm_lda, data = test_raw.df$Album_type)
+sm.lda.predict$class
+```
+```{r}
+sm.lda.predict$x
+```
+
+
+```{r}
+
+# Predict class labels for the test dataset
+predicted_labels <- predict(sm_lda, data = test_raw.df)$class
+
+# Calculate accuracy
+actual_labels <- test_raw.df$Album_type
+accuracy <- mean(predicted_labels == actual_labels)
+
+cat("Accuracy:", accuracy, "\n")
+```
+Our LDA model has an accuracy of 0.52 which showcases that it may not be an ideal model. However, as established initially, it can be attributed to the imbalanced dataset that we have.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
